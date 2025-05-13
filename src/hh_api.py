@@ -1,7 +1,9 @@
-from src.interfaces import AbsApi
-from src.exceptions import APIError
 from typing import Any, Dict, List, Optional
+
 import requests
+
+from src.exceptions import APIError
+from src.interfaces import AbsApi
 
 
 class HeadHunterAPI(AbsApi):
@@ -126,8 +128,10 @@ class HHEmployerAPI(HeadHunterAPI):
         :param employer_id: ID компании
         :return: Список словарей вакансий
         """
-        self._endpoint = f"{self._endpoint}{employer_id}"
-        data = self.connect()
+        endpoint_url = f"{self._endpoint}{employer_id}"
+        # self._endpoint = f"{self._endpoint}{employer_id}"
+        data = self.connect(endpoint_url)
+        # data = self.connect()
         self.__employer = data
         return self.__employer
 
@@ -151,36 +155,33 @@ class HHEmployersAPI(HeadHunterAPI):
         self._endpoint = "/employers"
         self.__employers: List[Dict[str, Any]] = []
 
-    def search_employers_id(self, keyword: str) -> List[Dict[str, Any]]:
+    def search_employers_by_keyword(self, keyword: str) -> List[Dict[str, Any]]:
         """
         Метод поиска компаний по ключевому слову
         :param keyword: Ключевое слово
         :return: Список словарей вакансий
         """
-        self._params = {"text": keyword, "only_with_vacancies": 'true'} # наличие актуальных вакансий
+        # наличие актуальных вакансий, регионы России
+        self._params = {"text": keyword, "only_with_vacancies": "true", "area": "113"}
         self.__employers.clear()
         data = self.connect()
         employers_search = data.get("items", [])
         self.__employers.extend(employers_search)
         return self.__employers
 
-
-if __name__ == '__main__':
-    employers_api = HHEmployersAPI()
-    search_employers = employers_api.search_employers_id("Яндекс")
-    employer_api = HHEmployerAPI()
-    employer = employer_api.get_employer_by_id("1740")
-    vacancies = HHVacanciesAPI()
-    vacancies = vacancies.get_vacancies_by_employer_id("1740")
-
-    # from src.settings import BASE_DIR
-    # import json
-    # file_path = BASE_DIR / "data" / "search_employers.json"
-    # with open(file_path, "w", encoding="utf-8") as json_file:
-    #     json.dump(search_employers, json_file, indent=4, ensure_ascii=False)
-    # file_path = BASE_DIR / "data" / "employer.json"
-    # with open(file_path, "w", encoding="utf-8") as json_file:
-    #     json.dump(employer, json_file, indent=4, ensure_ascii=False)
-    # file_path = BASE_DIR / "data" / "vacancies.json"
-    # with open(file_path, "w", encoding="utf-8") as json_file:
-    #     json.dump(vacancies, json_file, indent=4, ensure_ascii=False)
+    def get_top_employers(self, top_n: int = 20) -> List[Dict[str, Any]]:
+        """
+        Метод получения топ n компаний, по количеству открытых вакансий
+        :param top_n: Количество вакансий в топе(по умолчанию 20)
+        :return: Список словарей вакансий
+        """
+        if not isinstance(top_n, int):
+            raise TypeError("Аргумент не является числом")
+        if top_n > 100:
+            raise ValueError("Ошибка: Количество должно быть в диапазоне от 1 до 100")
+        self._params = {"per_page": top_n, "sort_by": "by_vacancies_open", "area": "113"}
+        self.__employers.clear()
+        data = self.connect()
+        employers_search = data.get("items", [])
+        self.__employers.extend(employers_search)
+        return self.__employers

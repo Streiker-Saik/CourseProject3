@@ -1,9 +1,11 @@
-from src.hh_api import HeadHunterAPI, HHVacanciesAPI, HHEmployerAPI, HHEmployersAPI
-from src.exceptions import APIError
+from typing import Any, Dict
 from unittest.mock import MagicMock, patch
-import requests
-from typing import Any, Dict, List
+
 import pytest
+import requests
+
+from src.exceptions import APIError
+from src.hh_api import HeadHunterAPI, HHEmployerAPI, HHEmployersAPI, HHVacanciesAPI
 
 
 @patch.object(HeadHunterAPI, "_HeadHunterAPI__connect")
@@ -35,7 +37,7 @@ def test_private_connect_invalid(mock_request: MagicMock) -> None:
     """Тестирование, работы приватного запроса API, если выдается не словарь"""
     with pytest.raises(ValueError) as exc_info:
         expected_result = "Error"
-        mock_request.return_value.result = expected_result
+        mock_request.return_value.json.return_value = expected_result
         mock_request.return_value.status_code = 200
         hh_api = HeadHunterAPI()
         hh_api.connect()
@@ -66,11 +68,12 @@ def test_private_connect_error(mock_request: MagicMock) -> None:
         params={},
     )
 
+
 @patch("requests.get")
 def test_private_request_exception(mock_request: MagicMock) -> None:
     """Тестирование, работы приватного запроса API с ошибкой статуса"""
     expected_result = "Network error"
-    mock_request.side_effect = requests.RequestException(expected_result) # имитация ошибки соединения
+    mock_request.side_effect = requests.RequestException(expected_result)  # имитация ошибки соединения
     hh_api = HeadHunterAPI()
     with pytest.raises(APIError, match=f"Ошибка при запросе: {expected_result}"):
         hh_api.connect()
@@ -97,28 +100,45 @@ def test_get_vacancies_none_key(mock_connect: MagicMock) -> None:
     mock_connect.assert_called_once_with()
 
 
-
 @patch.object(HHEmployerAPI, "connect")
 def test_get_employer_by_id(mock_connect: MagicMock) -> None:
-    """"""
+    """Тестирование получение компании по id"""
     excepted_result = {"id": "123"}
     mock_connect.return_value = excepted_result
     employer_api = HHEmployerAPI()
     employer = employer_api.get_employer_by_id("12345")
     assert employer == excepted_result
-    mock_connect.assert_called_once_with()
+    mock_connect.assert_called_once_with("/employers/12345")
 
 
 @patch.object(HHEmployersAPI, "connect")
-def test_search_employers_id(mock_connect: MagicMock) -> None:
-    """"""
+def test_search_employers_by_keyword(mock_connect: MagicMock) -> None:
+    """Тестирование поиска вакансий по ключевому слову"""
     mock_connect.return_value = {"items": [{"id": "123"}]}
     employers_api = HHEmployersAPI()
-    employers = employers_api.search_employers_id("12345")
+    employers = employers_api.search_employers_by_keyword("12345")
     assert len(employers) == 1
     mock_connect.assert_called_once_with()
 
 
+@patch.object(HHEmployerAPI, "connect")
+def test_get_top_employers(mock_connect: MagicMock) -> None:
+    """Тестирование получение топ работодателей"""
+    mock_connect.return_value = {"items": [{"id": "1"}, {"id": "2"}, {"id": "3"}]}
+    employers_api = HHEmployersAPI()
+    employers = employers_api.get_top_employers(3)
+    assert len(employers) == 3
 
 
+def test_get_top_employers_error_argument() -> None:
+    """Тестирование получение топ работодателей, с ошибкой типа аргумента"""
+    employers_api = HHEmployersAPI()
+    with pytest.raises(TypeError, match="Аргумент не является числом"):
+        employers_api.get_top_employers("Error")  # type: ignore
 
+
+def test_get_top_employers_error_range() -> None:
+    """Тестирование получение топ работодателей, с ошибкой диапазона аргумента"""
+    employers_api = HHEmployersAPI()
+    with pytest.raises(ValueError, match="Ошибка: Количество должно быть в диапазоне от 1 до 100"):
+        employers_api.get_top_employers(101)
