@@ -64,7 +64,7 @@ class HeadHunterAPI(AbsApi):
 
 class HHVacanciesAPI(HeadHunterAPI):
     """
-    Класс работы с HeadHunter с получение вакансий
+    Подкласс HeadHunterAPI, работы с получение вакансий
         Атрибуты:
             _endpoint(str): Конечная точка url запроса (protected);
             _params(dict): Параметры запроса (protected);
@@ -105,7 +105,7 @@ class HHVacanciesAPI(HeadHunterAPI):
 
 class HHEmployerAPI(HeadHunterAPI):
     """
-    Класс работы с HeadHunterAPI с поиском работодателя
+    Подкласс HeadHunterAPI, работы с поиском работодателя
         Атрибуты:
             _endpoint(str): Конечная точка url запроса (protected);
             __employer(dict): Словарь информации о работодателе
@@ -138,7 +138,7 @@ class HHEmployerAPI(HeadHunterAPI):
 
 class HHEmployersAPI(HeadHunterAPI):
     """
-    Класс работы с HeadHunterAPI с поиском работодателей по ключевому слову
+    Подкласс HeadHunterAPI, работы поиском работодателей
         Атрибуты:
             _endpoint(str): Конечная точка url запроса (protected);
             __employers(list): Список работодателей (private)
@@ -147,6 +147,10 @@ class HHEmployersAPI(HeadHunterAPI):
                 Инициализация класса HHEmployersAPI
             search_employers_id(self, keyword: str) -> List[Dict[str, Any]]:
                 Метод поиска компаний по ключевому слову
+            get_top_employers(self, top_n: int = 20) -> List[Dict[str, Any]]:
+                Метод получения топ n компаний, по количеству открытых вакансий
+                :raise TypeError: Аргумент не является числом
+                :raise ValueError: Количество должно быть в диапазоне от 1 до 100
     """
 
     def __init__(self) -> None:
@@ -174,11 +178,13 @@ class HHEmployersAPI(HeadHunterAPI):
         Метод получения топ n компаний, по количеству открытых вакансий
         :param top_n: Количество вакансий в топе(по умолчанию 20)
         :return: Список словарей вакансий
+        :raise TypeError: Аргумент не является числом
+        :raise ValueError: Количество должно быть в диапазоне от 1 до 100
         """
         if not isinstance(top_n, int):
             raise TypeError("Аргумент не является числом")
         if top_n > 100:
-            raise ValueError("Ошибка: Количество должно быть в диапазоне от 1 до 100")
+            raise ValueError("Количество должно быть в диапазоне от 1 до 100")
         self._params = {"per_page": top_n, "sort_by": "by_vacancies_open", "area": "113"}
         self.__employers.clear()
         data = self.connect()
