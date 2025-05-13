@@ -13,3 +13,16 @@ class AbsApi(ABC):
     def connect(self) -> Dict[Any, Any]:
         """Метод подключения к API"""
         pass
+
+
+class AbsPostgresSQL(ABC):
+    """
+    Абстрактный класс работы с PostgresSQL
+        connect(self) -> Dict[Any, Any]:
+            Метод подключения к API
+    """
+
+    @abstractmethod
+    def __connect(self) -> Dict[Any, Any]:
+        """Метод подключение к БД"""
+        pass
