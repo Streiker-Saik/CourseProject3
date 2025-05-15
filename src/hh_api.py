@@ -100,6 +100,7 @@ class HHVacanciesAPI(HeadHunterAPI):
                 break
             self.__vacancies.extend(vacancy)
             self._params["page"] += 1  # Увеличение номера страницы
+
         return self.__vacancies
 
 

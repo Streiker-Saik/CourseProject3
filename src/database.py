@@ -120,7 +120,7 @@ class DBManager(AbsPostgresSQL):
             with self.__conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT employer_name, COUNT(vacancy_id)
+                    SELECT employer_name, COUNT(vacancy_id) AS count_vacancies
                     FROM employers
                     LEFT JOIN vacancies USING(employer_id)
                     GROUP BY employer_name;
@@ -200,7 +200,7 @@ class DBManager(AbsPostgresSQL):
                 cur.execute(
                     """
                     WITH avg_salary AS (SELECT (AVG(salary_from + salary_to))/2 AS avg_salary FROM vacancies)
-                    SELECT *
+                    SELECT vacancy_id, employer_id, vacancy_name, city, vacancy_url, salary_from, salary_to
                     FROM vacancies
                     WHERE ((salary_from+salary_to)/2) > (SELECT avg_salary FROM avg_salary);
                     """
@@ -227,7 +227,8 @@ class DBManager(AbsPostgresSQL):
         try:
             with self.__conn.cursor() as cur:
                 conditions = " AND ".join(["LOWER(vacancy_name) LIKE LOWER(%s)" for _ in keywords_list])
-                query = f"SELECT * FROM vacancies WHERE {conditions}"
+                query = (f"SELECT vacancy_id, employer_id, vacancy_name, city, vacancy_url, salary_from, salary_to "
+                         f"FROM vacancies WHERE {conditions}")
                 vars = tuple(f"%{keyword}%" for keyword in keywords_list)
                 cur.execute(query, vars)
                 result = cur.fetchall()

@@ -140,5 +140,5 @@ def test_get_top_employers_error_argument() -> None:
 def test_get_top_employers_error_range() -> None:
     """Тестирование получение топ работодателей, с ошибкой диапазона аргумента"""
     employers_api = HHEmployersAPI()
-    with pytest.raises(ValueError, match="Ошибка: Количество должно быть в диапазоне от 1 до 100"):
+    with pytest.raises(ValueError, match="Количество должно быть в диапазоне от 1 до 100"):
         employers_api.get_top_employers(101)
