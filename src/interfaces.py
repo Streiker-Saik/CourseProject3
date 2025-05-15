@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 class AbsApi(ABC):
@@ -18,11 +18,11 @@ class AbsApi(ABC):
 class AbsPostgresSQL(ABC):
     """
     Абстрактный класс работы с PostgresSQL
-        connect(self) -> Dict[Any, Any]:
+        connect(self) -> None:
             Метод подключения к API
     """
 
     @abstractmethod
-    def __connect(self) -> Dict[Any, Any]:
+    def connect(self) -> None:
         """Метод подключение к БД"""
         pass

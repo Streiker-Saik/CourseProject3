@@ -24,6 +24,7 @@ black = "^25.1.0"
 isort = "^6.0.1"
 mypy = "^1.15.0"
 types-requests = "^2.32.0.20250328"
+types-psycopg2 = "^2.9.21.20250318"
 
 
 [tool.poetry.group.dev.dependencies]
